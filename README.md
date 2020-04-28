@@ -23,5 +23,12 @@ Navigate back to the project root folder. Make sure go is installed in system.
     1. `make worker`
     2. `./bins/worker`
 
-To signal workflow
-`docker run --network=host --rm ubercadence/cli:master --domain simple-domain workflow signal -w <wid> -n helloWorldSignal -i '25'`
+## To start workflow
+```
+docker run --network=host --rm ubercadence/cli:master --domain simple-domain workflow start --tl "batcherTask" --wt BatcherWorkflow --et 600 --dt 600 -w BatcherMain -i '[]'
+```
+
+## To Signal Workflow
+```
+docker run --network=host --rm ubercadence/cli:master --domain simple-domain wf signal -w BatcherMain -n batcherSignal -i '"customer1"'
+```

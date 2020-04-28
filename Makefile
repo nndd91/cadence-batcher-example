@@ -1,3 +1,5 @@
+.PHONY: worker
+
 default: bins
 
 worker:

@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"context"
-	"fmt"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
@@ -10,7 +9,7 @@ import (
 )
 
 const (
-	TaskListName = "helloWorldGroup"
+	TaskListName = "batcherTask"
 	batchSize               = 10
 	processingTimeThreshold = time.Second * 300
 	signalName              = "batcherSignal"
@@ -41,7 +40,6 @@ func BatcherWorkflow(ctx workflow.Context, batchedCustomerIds []string) (error) 
 		zap.Duration("ProcessingTimeThreshold", processingTimeThreshold))
 
 
-	var timerExpired bool
 
 	err := workflow.SetQueryHandler(ctx, "current_data", func() ([]string, error) {
 		return batchedCustomerIds, nil
@@ -52,6 +50,7 @@ func BatcherWorkflow(ctx workflow.Context, batchedCustomerIds []string) (error) 
 
 	// Get Ready to wait for Signal
 	var signalVal string
+	var timerExpired bool
 
 	selector := workflow.NewSelector(ctx)
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
@@ -59,7 +58,7 @@ func BatcherWorkflow(ctx workflow.Context, batchedCustomerIds []string) (error) 
 	setupTimerHandler(ctx, &selector, &timerExpired)
 
 	for endWorkflow := false; !endWorkflow; {
-		// If it is
+		// If it not initial run, we will stop here and wait for signal
 		if !isInitialRun {
 			logger.Debug("waiting for signal", zap.String("signalName", signalName))
 			selector.Select(ctx) // Wait for signal
@@ -72,8 +71,6 @@ func BatcherWorkflow(ctx workflow.Context, batchedCustomerIds []string) (error) 
 			logger.Debug("Initial run. Skipping select.")
 			isInitialRun = false
 		}
-
-		logger.Info(fmt.Sprintf("length of customer id %v, ",len(batchedCustomerIds)))
 
 		switch {
 		case timerExpired && len(batchedCustomerIds) == 0:
