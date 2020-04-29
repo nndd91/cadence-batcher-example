@@ -28,7 +28,7 @@ func init() {
 func ProcessCustomerActivity(ctx context.Context, batchedCustomerIds []string) ([]string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Running test activity")
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 5)
 	return batchedCustomerIds, nil
 }
 
@@ -95,7 +95,7 @@ func BatcherWorkflow(ctx workflow.Context, batchedCustomerIds []string) (error) 
 				batchedCustomerIds = []string{}
 			}
 			ao := workflow.ActivityOptions{
-				TaskList:               "test",
+				TaskList:               TaskListName,
 				ScheduleToCloseTimeout: time.Minute * 50,
 				ScheduleToStartTimeout: time.Minute * 50,
 				StartToCloseTimeout:    time.Minute * 50,
